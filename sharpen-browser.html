@@ -1,1 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sharpen Browser</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { margin: 0; font-family: Arial; background: #111; color: white; }
+    header { display: flex; padding: 8px; background: #000; gap: 6px; }
+    input { flex: 1; padding: 6px; }
+    button { padding: 6px 10px; }
+    iframe { width: 100%; height: calc(100vh - 44px); border: none; background: white; }
+    .warning { padding: 6px; font-size: 12px; background: #222; }
+  </style>
+</head>
+<body>
+
+<header>
+  <button onclick="back()">←</button>
+  <button onclick="forward()">→</button>
+  <button onclick="reload()">⟳</button>
+  <input id="url" placeholder="https://example.com" />
+  <button onclick="go()">Go</button>
+</header>
+
+<div class="warning">
+  ⚠️ Download-only version. Some sites will not load due to browser security.
+</div>
+
+<iframe id="view"></iframe>
+
+<script>
+  const frame = document.getElementById("view");
+  const history = [];
+  let index = -1;
+
+  function normalize(url) {
+    if (!url.startsWith("http")) return "https://" + url;
+    return url;
+  }
+
+  function go() {
+    const input = document.getElementById("url").value.trim();
+    if (!input) return;
+
+    const url = normalize(input);
+    frame.src = url;
+
+    history.splice(index + 1);
+    history.push(url);
+    index++;
+  }
+
+  function back() {
+    if (index > 0) {
+      index--;
+      frame.src = history[index];
+    }
+  }
+
+  function forward() {
+    if (index < history.length - 1) {
+      index++;
+      frame.src = history[index];
+    }
+  }
+
+  function reload() {
+    frame.src = frame.src;
+  }
+</script>
+
+</body>
+</html>
 
