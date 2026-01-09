@@ -5,70 +5,97 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { margin: 0; font-family: Arial; background: #111; color: white; }
-    header { display: flex; padding: 8px; background: #000; gap: 6px; }
-    input { flex: 1; padding: 6px; }
-    button { padding: 6px 10px; }
-    iframe { width: 100%; height: calc(100vh - 44px); border: none; background: white; }
-    .warning { padding: 6px; font-size: 12px; background: #222; }
+    header {
+      display: flex;
+      padding: 8px;
+      background: #000;
+      gap: 6px;
+    }
+    input {
+      flex: 1;
+      padding: 6px;
+    }
+    button {
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    iframe {
+      width: 100%;
+      height: calc(100vh - 78px);
+      border: none;
+      background: black;
+    }
+    .mode {
+      padding: 6px;
+      font-size: 12px;
+      background: #222;
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <button onclick="back()">←</button>
-  <button onclick="forward()">→</button>
-  <button onclick="reload()">⟳</button>
-  <input id="url" placeholder="https://example.com" />
+  <button onclick="setMode('web')">🌐 Web</button>
+  <button onclick="setMode('youtube')">▶ YouTube</button>
+  <input id="input" placeholder="Enter website or YouTube link" />
   <button onclick="go()">Go</button>
 </header>
 
-<div class="warning">
-  ⚠️ Download-only version. Some sites will not load due to browser security.
+<div class="mode" id="modeText">
+  Mode: Web browsing (limited by site security)
 </div>
 
 <iframe id="view"></iframe>
 
 <script>
+  let mode = "web";
   const frame = document.getElementById("view");
-  const history = [];
-  let index = -1;
+  const input = document.getElementById("input");
+  const modeText = document.getElementById("modeText");
+
+  function setMode(m) {
+    mode = m;
+    modeText.textContent =
+      m === "web"
+        ? "Mode: Web browsing (iframe-allowed sites only)"
+        : "Mode: YouTube video player (official embed)";
+  }
 
   function normalize(url) {
     if (!url.startsWith("http")) return "https://" + url;
     return url;
   }
 
+  function extractYouTubeID(text) {
+    const match = text.match(/(v=|\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[2] : null;
+  }
+
   function go() {
-    const input = document.getElementById("url").value.trim();
-    if (!input) return;
+    const value = input.value.trim();
+    if (!value) return;
 
-    const url = normalize(input);
-    frame.src = url;
+    if (mode === "youtube") {
+      let id = extractYouTubeID(value);
 
-    history.splice(index + 1);
-    history.push(url);
-    index++;
-  }
+      if (!id && value.length === 11) {
+        id = value;
+      }
 
-  function back() {
-    if (index > 0) {
-      index--;
-      frame.src = history[index];
+      if (id) {
+        frame.src = "https://www.youtube.com/embed/" + id;
+      } else {
+        window.open(
+          "https://www.youtube.com/results?search_query=" +
+            encodeURIComponent(value),
+          "_blank"
+        );
+      }
+    } else {
+      frame.src = normalize(value);
     }
-  }
-
-  function forward() {
-    if (index < history.length - 1) {
-      index++;
-      frame.src = history[index];
-    }
-  }
-
-  function reload() {
-    frame.src = frame.src;
   }
 </script>
 
 </body>
 </html>
-
